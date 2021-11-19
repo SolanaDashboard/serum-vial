@@ -1,6 +1,6 @@
 from node:16-slim
 
-ENV PORT 80
+ENV PORT 8000
 
 WORKDIR /usr/src/app
 
@@ -15,4 +15,4 @@ RUN npm run build
 EXPOSE $PORT
 
 # run it
-CMD ["node", "./bin/serum-vial.js", "--log-level=info"]
+CMD ["node", "./bin/serum-vial.js", "--log-level=info", "--endpoint=http://michael.rpcpool.com/"]
