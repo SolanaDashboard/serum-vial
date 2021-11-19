@@ -1,10 +1,18 @@
 from node:16-slim
-# version arg contains current git tag
-ARG VERSION_ARG
-# install git
-RUN apt-get update && apt-get install -y git
 
-# install serum-vial globally (exposes serum-vial command)
-RUN npm install --global --unsafe-perm serum-vial@$VERSION_ARG
+ENV PORT 80
+
+WORKDIR /usr/src/app
+
+ADD . /usr/src/app/
+#RUN npm install -g npm@8.1.4
+RUN npm ci
+
+ENV NODE_ENV production
+
+RUN npm run build
+
+EXPOSE $PORT
+
 # run it
-CMD serum-vial
+CMD ["node", "./bin/serum-vial.js", "--log-level=info"]
