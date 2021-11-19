@@ -20,7 +20,7 @@ export async function bootServer({
 
   logger.log(
     'info',
-    MINIONS_COUNT === 1 ? 'Starting single minion worker...' : `Starting ${MINIONS_COUNT} minion workers...`
+    MINIONS_COUNT === 1 ? 'Sophon: Starting single minion worker...' : `Starting ${MINIONS_COUNT} minion workers...`
   )
   minionReadyChannel.onmessage = () => readyMinionsCount++
 

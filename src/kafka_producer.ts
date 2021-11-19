@@ -27,6 +27,6 @@ export const create_kafka_topics = async () => {
                 },
             ],
         }).catch(logger.error)
-        logger.info('topic created: ' + kafka_topic)
+        logger.log('info', 'topic created: ' + kafka_topic)
     }
 }
