@@ -3,6 +3,7 @@ import { Connection, PublicKey } from '@solana/web3.js'
 import { App, HttpResponse, DISABLED, SSLApp, TemplatedApp, us_listen_socket_close, WebSocket } from 'uWebSockets.js'
 import { isMainThread, threadId, workerData } from 'worker_threads'
 import { CHANNELS, MESSAGE_TYPES_PER_CHANNEL, OPS } from './consts'
+import {producer, create_kafka_topics} from "./kafka_producer"
 import {
   cleanupChannel,
   executeAndRetry,
@@ -116,6 +117,9 @@ class Minion {
   }
 
   public async start(port: number) {
+    // initial kafka
+    await producer.connect()
+    await create_kafka_topics()
     return new Promise<void>((resolve, reject) => {
       this._server.listen(port, (socket) => {
         if (socket) {
@@ -226,8 +230,19 @@ class Minion {
 
       if (message.publish) {
         this._server.publish(topic, message.payload)
+        const kafka_topic = `serum_${message.market}`.replace('\/', '-')
+        this._produce_msg(kafka_topic, message.payload)
       }
     }
+  }
+
+  private async _produce_msg(topic: String, payload: String): Promise<void> {
+    producer.send({
+      topic: topic,
+      messages: [
+        { value: payload },
+      ],
+    }).catch(console.error)
   }
 
   private async _handleSubscriptionRequest(ws: WebSocket, buffer: ArrayBuffer) {
