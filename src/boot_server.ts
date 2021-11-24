@@ -5,6 +5,26 @@ import { cleanupChannel, minionReadyChannel, serumProducerReadyChannel, wait } f
 import { logger } from './logger'
 import { SerumMarket } from './types'
 
+async function startWorker(market: SerumMarket, nodeEndpoint: string, markets: SerumMarket[], commitment: string, wsEndpointPort: number | undefined) {
+  const serumProducerWorker = new Worker(path.resolve(__dirname, 'serum_producer.js'), {
+    workerData: {marketName: market.name, nodeEndpoint, markets, commitment, wsEndpointPort}
+  })
+
+  logger.log('info', `Starting new worker ${serumProducerWorker.threadId} for ${market.name}`)
+
+  serumProducerWorker.on('error', (err) => {
+    logger.log(
+        'error',
+        `Serum producer worker ${serumProducerWorker.threadId} error occurred: ${err.message} ${err.stack}`
+    )
+    throw err
+  })
+
+  serumProducerWorker.on('exit', (code) => {
+    logger.log('error', `Serum producer worker: ${serumProducerWorker.threadId} died with code: ${code}`)
+  })
+}
+
 export async function bootServer({
   port,
   nodeEndpoint,
@@ -59,22 +79,21 @@ export async function bootServer({
 
   for (const market of markets) {
     const serumProducerWorker = new Worker(path.resolve(__dirname, 'serum_producer.js'), {
-      workerData: { marketName: market.name, nodeEndpoint, markets, commitment, wsEndpointPort }
+      workerData: {marketName: market.name, nodeEndpoint, markets, commitment, wsEndpointPort}
     })
 
     logger.log('info', `Starting new worker ${serumProducerWorker.threadId} for ${market.name}`)
 
     serumProducerWorker.on('error', (err) => {
       logger.log(
-        'error',
-        `Serum producer worker ${serumProducerWorker.threadId} error occurred: ${err.message} ${err.stack}`
+          'error',
+          `Serum producer worker ${serumProducerWorker.threadId} error occurred: ${err.message} ${err.stack}`
       )
-      // Scott: temp swallow the error, don't want to break the whole thing
-      // throw err
     })
 
     serumProducerWorker.on('exit', (code) => {
       logger.log('error', `Serum producer worker: ${serumProducerWorker.threadId} died with code: ${code}`)
+      startWorker(market, nodeEndpoint, markets, commitment, wsEndpointPort)
     })
 
     // just in case to not get hit by serum RPC node rate limits...
