@@ -17,7 +17,8 @@ async function startWorker(market: SerumMarket, nodeEndpoint: string, markets: S
         'error',
         `Serum producer worker ${serumProducerWorker.threadId} error occurred: ${err.message} ${err.stack}`
     )
-    throw err
+    // swallow the error, not ideal but don't want to restart.
+    // throw err
   })
 
   serumProducerWorker.on('exit', (code) => {
