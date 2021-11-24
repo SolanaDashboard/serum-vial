@@ -237,12 +237,21 @@ class Minion {
   }
 
   private async _produce_msg(topic: String, payload: String): Promise<void> {
-    producer.send({
-      topic: topic,
-      messages: [
-        { value: payload },
-      ],
-    }).catch(console.error)
+    try {
+      producer.send({
+        topic: topic,
+        messages: [
+          {value: payload},
+        ],
+      })
+    } catch (e: unknown) {
+      if (typeof e === "string") {
+        e.toUpperCase() // works, `e` narrowed to string
+        logger.log('error', `Error publish message, topic: ${topic}, payload is ${payload}, error is ${e}`,)
+      } else if (e instanceof Error) {
+        logger.log('error', `Error publish message, topic: ${topic}, payload is ${payload}, error is ${e.message}`,)
+      }
+    }
   }
 
   private async _handleSubscriptionRequest(ws: WebSocket, buffer: ArrayBuffer) {

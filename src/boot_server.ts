@@ -69,7 +69,8 @@ export async function bootServer({
         'error',
         `Serum producer worker ${serumProducerWorker.threadId} error occurred: ${err.message} ${err.stack}`
       )
-      throw err
+      // Scott: temp swallow the error, don't want to break the whole thing
+      // throw err
     })
 
     serumProducerWorker.on('exit', (code) => {
