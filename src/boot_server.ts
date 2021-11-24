@@ -62,6 +62,8 @@ export async function bootServer({
       workerData: { marketName: market.name, nodeEndpoint, markets, commitment, wsEndpointPort }
     })
 
+    logger.log('info', `Starting new worker ${serumProducerWorker.threadId} for ${market.name}`)
+
     serumProducerWorker.on('error', (err) => {
       logger.log(
         'error',
