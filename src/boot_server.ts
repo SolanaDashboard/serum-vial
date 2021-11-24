@@ -23,6 +23,7 @@ async function startWorker(market: SerumMarket, nodeEndpoint: string, markets: S
 
   serumProducerWorker.on('exit', (code) => {
     logger.log('error', `Serum producer worker: ${serumProducerWorker.threadId} died with code: ${code}`)
+    startWorker(market, nodeEndpoint, markets, commitment, wsEndpointPort)
   })
 }
 
