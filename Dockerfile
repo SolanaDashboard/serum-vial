@@ -15,4 +15,4 @@ RUN npm run build
 EXPOSE $PORT
 
 # run it
-CMD ["node", "./bin/serum-vial.js", "--log-level=info", "--endpoint=http://michael.rpcpool.com/"]
+CMD ["node", "./bin/serum-vial.js", "--log-level=info", "--endpoint=http://solana-api-gamma.tt-prod.net"]
