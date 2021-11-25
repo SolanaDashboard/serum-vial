@@ -118,8 +118,13 @@ class Minion {
 
   public async start(port: number) {
     // initial kafka
-    await producer.connect()
-    await create_kafka_topics()
+    try {
+      await producer.connect()
+      await create_kafka_topics()
+    } catch (e: unknown) {
+      logger.log('error', 'Error in connecting to kafka, retry once')
+      await producer.connect()
+    }
     return new Promise<void>((resolve, reject) => {
       this._server.listen(port, (socket) => {
         if (socket) {
@@ -238,11 +243,12 @@ class Minion {
 
   private async _produce_msg(topic: String, payload: String): Promise<void> {
     try {
-      producer.send({
+      await producer.send({
         topic: topic,
         messages: [
           {value: payload},
         ],
+        timeout: 10000
       })
     } catch (e: unknown) {
       if (typeof e === "string") {
@@ -250,6 +256,8 @@ class Minion {
         logger.log('error', `Error publish message, topic: ${topic}, payload is ${payload}, error is ${e}`,)
       } else if (e instanceof Error) {
         logger.log('error', `Error publish message, topic: ${topic}, payload is ${payload}, error is ${e.message}`,)
+      } else {
+        logger.log('error', `Error publish message, topic: ${topic}, payload is ${payload}, error is unknown. `,)
       }
     }
   }
